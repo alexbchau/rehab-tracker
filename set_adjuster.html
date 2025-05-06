@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rehab Tracker with Editable Parameters</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0b0f19, #1e293b);
+      --card: #111827;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --border: #1f2937;
+    }
+    body {
+      margin: 0;
+      padding: 2rem;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 700px;
+      width: 100%;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .card {
+      background: var(--card);
+      padding: 2rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin: 1rem 0 0.4rem;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: var(--text);
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #2563eb;
+    }
+    #log {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .log-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1f2937;
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .log-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .log-meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-left: 6px;
+      display: inline-block;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .nav button {
+      width: 49%;
+      border-radius: 9999px;
+    }
+    #rest-timer {
+      text-align: center;
+      font-size: 1rem;
+      color: var(--muted);
+      margin-top: 1rem;
+    }
+    #suggestion {
+      margin-top: 1rem;
+      text-align: center;
+      color: var(--primary);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+  .rpe-btn, .pain-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background-color: #1e293b;
+  color: white;
+  border: 1px solid #334155;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+.rpe-btn.selected, .pain-btn.selected {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+@media (max-width: 480px) {
+  body {
+    padding: 1rem;
+  }
+  .container {
+    padding: 1rem;
+  }
+  .nav button {
+    font-size: 0.9rem;
+  }
+  .rpe-btn, .pain-btn {
+    flex: none;
+    min-width: 36px;
+    font-size: 0.9rem;
+  }
+  label {
+    font-size: 0.95rem;
+  }
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav">
+      <button onclick="showPage('log')">Log Set</button>
+      <button onclick="showPage('params')">Edit Parameters</button>
+    </div>
+
+    <div id="logPage" class="card">
+      <h1>Set & Rep Logger</h1>
+
+      <label>Exercise Name</label>
+      <input type="text" id="exercise" placeholder="e.g. Goblet Squat" />
+
+      <label>Weight Used (lbs)</label>
+      <input type="number" id="weight" placeholder="e.g. 185" />
+
+      <label>Reps Performed</label>
+      <input type="number" id="reps" placeholder="e.g. 3" />
+
+      <label>Hold Time (If Applicable)</label>
+      <input type="number" id="hold" placeholder="e.g. 2" />
+
+      <label>RPE (1–10)
+  <span style="cursor: help; font-size: 0.9rem; margin-left: 6px; color: var(--muted);" title="RPE (Rate of Perceived Exertion) estimates how hard a set feels:
+1 = Very easy
+5 = Moderate effort (~5 reps left)
+7 = Hard effort (~3 reps left)
+10 = Maximal effort, no reps left
+Use RPE to guide your training intensity.">ⓘ</span>
+</label>
+<div id="rpe-buttons" style="display: flex; gap: 0.5rem; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 0.5rem;">
+  <button type='button' class='rpe-btn' onclick='selectRPE(1, this)'>1</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(2, this)'>2</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(3, this)'>3</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(4, this)'>4</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(5, this)'>5</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(6, this)'>6</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(7, this)'>7</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(8, this)'>8</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(9, this)'>9</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(10, this)'>10</button>
+</div>
+<input type="hidden" id="rpe" />
+
+      <label>Pain (0–10)
+  <span style="cursor: help; font-size: 0.9rem; margin-left: 6px; color: var(--muted);" title="Pain scale rates discomfort during the exercise:
+0 = No pain
+1–3 = Mild discomfort
+4–6 = Moderate, tolerable
+7–9 = High pain, modify
+10 = Worst pain, stop exercise
+Use this to guide safe progression.">ⓘ</span>
+</label>
+<div id="pain-buttons" style="display: flex; gap: 0.5rem; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 0.5rem;">
+  <button type='button' class='pain-btn' onclick='selectPain(0, this)'>0</button>
+  <button type='button' class='pain-btn' onclick='selectPain(1, this)'>1</button>
+  <button type='button' class='pain-btn' onclick='selectPain(2, this)'>2</button>
+  <button type='button' class='pain-btn' onclick='selectPain(3, this)'>3</button>
+  <button type='button' class='pain-btn' onclick='selectPain(4, this)'>4</button>
+  <button type='button' class='pain-btn' onclick='selectPain(5, this)'>5</button>
+  <button type='button' class='pain-btn' onclick='selectPain(6, this)'>6</button>
+  <button type='button' class='pain-btn' onclick='selectPain(7, this)'>7</button>
+  <button type='button' class='pain-btn' onclick='selectPain(8, this)'>8</button>
+  <button type='button' class='pain-btn' onclick='selectPain(9, this)'>9</button>
+  <button type='button' class='pain-btn' onclick='selectPain(10, this)'>10</button>
+</div>
+<input type="hidden" id="pain" />
+
+      <button onclick="logSet()">Log Set</button>
+      <div id="rest-timer">Rest Timer: 0:00</div>
+      <div id="suggestion"></div>
+    </div>
+
+    <div id="paramPage" class="card" style="display:none">
+      <h1>Edit Parameters</h1>
+      <label>Max Acceptable Pain (0–10)</label>
+      <input type="number" id="paramPain" value="5" />
+
+      <label>Target RPE Min</label>
+      <input type="number" id="paramRpeMin" value="5" />
+
+      <label>Target RPE Max</label>
+      <input type="number" id="paramRpeMax" value="8" />
+
+      <label>Target Rep Range</label>
+      <input type="text" id="paramReps" value="6-12" />
+
+      <button onclick="showPage('log')">Back to Logger</button>
+    </div>
+
+    <div class="card">
+      <h1>Workout Log</h1>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <script>
+    let maxPain = 5, rpeMin = 5, rpeMax = 8, repRange = '6-12';
+    let restStartTime = null;
+    let restInterval = null;
+
+    function showPage(page) {
+      document.getElementById('logPage').style.display = page === 'log' ? 'block' : 'none';
+      document.getElementById('paramPage').style.display = page === 'params' ? 'block' : 'none';
+
+      if (page === 'log') {
+        maxPain = parseInt(document.getElementById('paramPain').value);
+        rpeMin = parseInt(document.getElementById('paramRpeMin').value);
+        rpeMax = parseInt(document.getElementById('paramRpeMax').value);
+        repRange = document.getElementById('paramReps').value;
+      }
+    }
+
+    function getColor(rpe, pain) {
+      if (pain >= maxPain) return '#ef4444';
+      if (rpe > rpeMax) return '#f59e0b';
+      return '#10b981';
+    }
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function updateRestTimer() {
+      const elapsed = Math.floor((Date.now() - restStartTime) / 1000);
+      document.getElementById('rest-timer').innerText = `Rest Timer: ${formatTime(elapsed)}`;
+    }
+
+    function startRestTimer() {
+      restStartTime = Date.now();
+      if (restInterval) clearInterval(restInterval);
+      updateRestTimer();
+      restInterval = setInterval(updateRestTimer, 1000);
+    }
+
+    function logSet() {
+      const exercise = document.getElementById('exercise').value;
+      const weight = parseFloat(document.getElementById('weight').value);
+      const reps = parseInt(document.getElementById('reps').value);
+      const hold = parseInt(document.getElementById('hold').value) || 0;
+      const rpe = parseInt(document.getElementById('rpe').value);
+      const pain = parseInt(document.getElementById('pain').value);
+      const log = document.getElementById('log');
+      const suggestion = document.getElementById('suggestion');
+
+      if (!exercise || isNaN(weight) || isNaN(reps) || isNaN(rpe) || isNaN(pain)) return;
+
+      const row = document.createElement('div');
+      row.className = 'log-row';
+
+      const colorDot = getColor(rpe, pain);
+      const holdText = hold > 0 ? `<strong>HOLD:</strong> ${hold}s &nbsp;` : '';
+
+      row.innerHTML = `
+        <div class="log-content">
+          <div><strong>${exercise}</strong><br><strong>LB:</strong> ${weight} &nbsp; <strong>REPS:</strong> ${reps} &nbsp; ${holdText}<span class="dot" style="background:${colorDot}"></span></div>
+          <div class="log-meta">RPE: ${rpe} | Pain: ${pain}/10 | Target Reps: ${repRange}</div>
+        </div>
+        <div class="log-actions">
+          <button onclick="deleteSet(this)">Delete</button>
+        </div>
+      `;
+
+      log.appendChild(row);
+      startRestTimer();
+
+      let adjustment = '';
+if (pain >= maxPain) {
+  adjustment = '⚠️ Pain too high — reduce weight by 5–10 lbs or decrease reps.';
+} else if (rpe < rpeMin && reps >= parseInt(repRange.split('-')[1])) {
+  let newWeight = Math.ceil((weight * 1.05) / 5) * 5;
+  adjustment = `Increase weight to ${newWeight} lbs next set.`;
+} else if (rpe < rpeMin) {
+  adjustment = 'Add 1–2 reps next set (max 12).';
+} else if (rpe <= rpeMax) {
+  adjustment = 'Maintain current weight and reps.';
+} else {
+  let newWeight = Math.floor((weight * 0.95) / 5) * 5;
+  let repsToReduce = Math.ceil(rpe - rpeMax);
+  adjustment = `Reduce weight to ${newWeight} lbs or reduce reps by ~${repsToReduce} to target RPE ${rpeMin}-${rpeMax}.`;
+}
+suggestion.innerText = `Next Set Recommendation: ${adjustment}`;
+    }
+
+    function deleteSet(button) {
+      button.closest('.log-row').remove();
+    }
+  function selectRPE(val, el) {
+  document.getElementById('rpe').value = val;
+  document.querySelectorAll('.rpe-btn').forEach(btn => btn.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectPain(val, el) {
+  document.getElementById('pain').value = val;
+  document.querySelectorAll('.pain-btn').forEach(btn => btn.classList.remove('selected'));
+  el.classList.add('selected');
+}
+</script>
+</body>
+</html>
