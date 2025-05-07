@@ -171,28 +171,279 @@
 </style>
 </head>
 <body>
-<!-- BODY OMITTED FOR BREVITY -->
-<script>
-// Replace the rep suggestion logic using more accurate RIR mapping
-const rir = 10 - rpe;
+  <div class="container">
+    <div style="text-align: center; margin-bottom: 1rem;">
+  <a href="#" onclick="location.reload();">
+    <img src="https://i.imgur.com/q6i595o.png" alt="SmartReps Logo" style="max-width: 180px; height: auto;">
+  </a>
+</div>
+<div class="nav">
+      <button onclick="showPage('log')">Log Set</button>
+      <button onclick="showPage('params')">Edit Parameters</button>
+    </div>
 
-if (rpe < rpeMin) {
-  const targetRIR = 10 - rpeMin;
-  const repDiff = rir - targetRIR;
-  const suggestedReps = Math.min(reps + repDiff, parseInt(repRange.split('-')[1]));
-  adjustment = `Try ${suggestedReps} reps next set to approach RPE ${rpeMin}-${rpeMax}.`;
-} else if (rpe > rpeMax) {
-  const targetRIR = 10 - rpeMax;
-  const repDiff = targetRIR - rir;
-  const suggestedReps = Math.max(reps - repDiff, parseInt(repRange.split('-')[0]));
-  adjustment = `Next set: ${suggestedReps} reps to better match RPE ${rpeMin}-${rpeMax}.`;
-} reps next set to approach RPE ${rpeMin}-${rpeMax}.`;
-  } else if (rpe > rpeMax) {
-    const suggestedReps = Math.max(reps - (desiredRIRLow - rir), parseInt(repRange.split('-')[0]));
-    adjustment = `Next set: ${suggestedReps} reps at ${newWeight} lbs to target RPE ${rpeMin}-${rpeMax}.`;
-  }
-  // ... rest of code ...
+    <div id="logPage" class="card">
+      <h1>SmartReps</h1>
+
+      <label>Exercise Name</label>
+      <input type="text" id="exercise" placeholder="e.g. Goblet Squat" />
+
+      <label>Weight Used (lbs)</label>
+      <input type="number" id="weight" placeholder="e.g. 185" />
+
+      <label>Reps Performed <span style='font-size: 0.9rem; color: var(--muted);'>(Target: <span id='rep-range-display'></span> reps)</span></label>
+      <input type="number" id="reps" placeholder="e.g. 3" />
+
+      <label>Hold Time (If Applicable)</label>
+      <input type="number" id="hold" placeholder="e.g. 2" />
+
+      <label>RPE (1–10) <span style='font-size: 0.9rem; color: var(--muted);'>(Target: <span id='rpe-range-display'></span>)</span>
+  <span style="cursor: help; font-size: 0.9rem; margin-left: 6px; color: var(--muted);" title="RPE (Rate of Perceived Exertion) estimates how hard a set feels:
+1 = Very easy
+5 = Moderate effort (~5 reps left)
+7 = Hard effort (~3 reps left)
+10 = Maximal effort, no reps left
+Use RPE to guide your training intensity.">ⓘ</span>
+</label>
+<div id="rpe-buttons" style="display: flex; gap: 0.5rem; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 0.5rem;">
+  <button type='button' class='rpe-btn' onclick='selectRPE(1, this)'>1</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(2, this)'>2</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(3, this)'>3</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(4, this)'>4</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(5, this)'>5</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(6, this)'>6</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(7, this)'>7</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(8, this)'>8</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(9, this)'>9</button>
+  <button type='button' class='rpe-btn' onclick='selectRPE(10, this)'>10</button>
+</div>
+<input type="hidden" id="rpe" />
+
+      <label>Pain (0–10) <span style='font-size: 0.9rem; color: var(--muted);'>(Max: <span id='pain-max-display'></span>)</span>
+  <span style="cursor: help; font-size: 0.9rem; margin-left: 6px; color: var(--muted);" title="Pain scale rates discomfort during the exercise:
+0 = No pain
+1–3 = Mild discomfort
+4–6 = Moderate, tolerable
+7–9 = High pain, modify
+10 = Worst pain, stop exercise
+Use this to guide safe progression.">ⓘ</span>
+</label>
+<div id="pain-buttons" style="display: flex; gap: 0.5rem; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 0.5rem;">
+  <button type='button' class='pain-btn' onclick='selectPain(0, this)'>0</button>
+  <button type='button' class='pain-btn' onclick='selectPain(1, this)'>1</button>
+  <button type='button' class='pain-btn' onclick='selectPain(2, this)'>2</button>
+  <button type='button' class='pain-btn' onclick='selectPain(3, this)'>3</button>
+  <button type='button' class='pain-btn' onclick='selectPain(4, this)'>4</button>
+  <button type='button' class='pain-btn' onclick='selectPain(5, this)'>5</button>
+  <button type='button' class='pain-btn' onclick='selectPain(6, this)'>6</button>
+  <button type='button' class='pain-btn' onclick='selectPain(7, this)'>7</button>
+  <button type='button' class='pain-btn' onclick='selectPain(8, this)'>8</button>
+  <button type='button' class='pain-btn' onclick='selectPain(9, this)'>9</button>
+  <button type='button' class='pain-btn' onclick='selectPain(10, this)'>10</button>
+</div>
+<input type="hidden" id="pain" />
+
+      <button onclick="logSet()">Log Set</button>
+      <div id="rest-timer">Rest Timer: 0:00</div>
+      <div id="suggestion"></div>
+    </div>
+
+    <div id="paramPage" class="card" style="display:none">
+      <h1>Edit Parameters</h1>
+      <label>Max Acceptable Pain (0–10)</label>
+      <input type="number" id="paramPain" value="5" />
+
+      <label>Target RPE Min</label>
+      <input type="number" id="paramRpeMin" value="6" />
+
+      <label>Target RPE Max</label>
+      <input type="number" id="paramRpeMax" value="7" />
+
+      <label>Target Rep Range</label>
+      <input type="text" id="paramReps" value="6-12" />
+
+      <button onclick="showPage('log')">Back to Logger</button>
+    </div>
+
+    <div class="card">
+      <h1>Workout Log</h1>
+      <div id="log"></div>
+      <button onclick="endWorkout()">End Workout</button>
+      <div id="workout-summary" class="card" style="display: none; margin-top: 1rem;"></div>
+    </div>
+
+  </div>
+
+  <script>
+    let maxPain = 5, rpeMin = 6, rpeMax = 7, repRange = '6-12';
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('rpe-range-display').innerText = `${rpeMin}–${rpeMax}`;
+  document.getElementById('pain-max-display').innerText = maxPain;
+  document.getElementById('rep-range-display').innerText = repRange;
+});
+    let restStartTime = null;
+    let restInterval = null;
+
+    function showPage(page) {
+      document.getElementById('logPage').style.display = page === 'log' ? 'block' : 'none';
+      document.getElementById('paramPage').style.display = page === 'params' ? 'block' : 'none';
+
+      if (page === 'log') {
+        maxPain = parseInt(document.getElementById('paramPain').value);
+        rpeMin = parseInt(document.getElementById('paramRpeMin').value);
+        rpeMax = parseInt(document.getElementById('paramRpeMax').value);
+        repRange = document.getElementById('paramReps').value;
+        document.getElementById('rep-range-display').innerText = repRange;
+        document.getElementById('rpe-range-display').innerText = `${rpeMin}–${rpeMax}`;
+        document.getElementById('pain-max-display').innerText = maxPain;
+document.getElementById('rep-range-display').innerText = repRange;
+      }
+    }
+
+    function getColor(rpe, pain) {
+      if (pain > maxPain) return '#ef4444';
+      if (rpe > rpeMax) return '#f59e0b';
+      return '#10b981';
+    }
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function updateRestTimer() {
+      const elapsed = Math.floor((Date.now() - restStartTime) / 1000);
+      document.getElementById('rest-timer').innerText = `Rest Timer: ${formatTime(elapsed)}`;
+    }
+
+    function startRestTimer() {
+      restStartTime = Date.now();
+      if (restInterval) clearInterval(restInterval);
+      updateRestTimer();
+      restInterval = setInterval(updateRestTimer, 1000);
+    }
+
+    function logSet() {
+      const exercise = document.getElementById('exercise').value;
+      const weight = parseFloat(document.getElementById('weight').value);
+      const reps = parseInt(document.getElementById('reps').value);
+      const hold = parseInt(document.getElementById('hold').value) || 0;
+      const rpe = parseInt(document.getElementById('rpe').value);
+      const pain = parseInt(document.getElementById('pain').value);
+      let logSection = document.getElementById('log');
+let exerciseSection = document.getElementById(`exercise-${exercise}`);
+if (!exerciseSection) {
+  exerciseSection = document.createElement('div');
+  exerciseSection.id = `exercise-${exercise}`;
+  exerciseSection.innerHTML = `<h2 style='margin-top:1rem; padding-top: 1rem; border-top: 1px solid var(--border);'>${exercise}</h2>`;
+  logSection.appendChild(exerciseSection);
 }
+      const suggestion = document.getElementById('suggestion');
+
+      if (!exercise || isNaN(weight) || isNaN(reps) || isNaN(rpe) || isNaN(pain)) return;
+
+      const row = document.createElement('div');
+      row.className = 'log-row';
+
+      const colorDot = getColor(rpe, pain);
+      const holdText = hold > 0 ? `<strong>HOLD:</strong> ${hold}s &nbsp;` : '';
+
+      row.innerHTML = `
+        <div class="log-content">
+          <div><strong>${exercise}</strong><br><strong>LB:</strong> ${weight} &nbsp; <strong>REPS:</strong> ${reps} &nbsp; ${holdText}<span class="dot" style="background:${colorDot}"></span></div>
+          <div class="log-meta">RPE: ${rpe} | Pain: ${pain}/10 | Target Reps: ${repRange}</div>
+        </div>
+        <div class="log-actions">
+          <button onclick="deleteSet(this)">Delete</button>
+        </div>
+      `;
+
+      row.style.marginTop = '1rem';
+  exerciseSection.appendChild(row);
+      startRestTimer();
+
+      let adjustment = '';
+if (pain > maxPain) {
+  adjustment = '⚠️ Pain too high — reduce weight by 5–10 lbs or decrease reps.';
+} else if (rpe < rpeMin && reps >= parseInt(repRange.split('-')[1])) {
+  let newWeight = Math.ceil((weight * 1.05) / 5) * 5;
+  let suggestedReps = reps;
+adjustment = `Next set: ${suggestedReps} reps at ${newWeight} lbs.`;
+} else if (rpe < rpeMin) {
+  let suggestedReps = Math.min(reps + 1, parseInt(repRange.split('-')[1]));
+adjustment = `Try ${suggestedReps} reps next set to increase challenge while staying within target range.`;
+} else if (rpe <= rpeMax) {
+  adjustment = 'Maintain current weight and reps.';
+} else {
+  let newWeight = Math.floor((weight * 0.95) / 5) * 5;
+  let repsToReduce = Math.ceil(rpe - rpeMax);
+  let suggestedReps = Math.max(reps - repsToReduce, parseInt(repRange.split('-')[0]));
+adjustment = `Next set: ${suggestedReps} reps at ${newWeight} lbs to target RPE ${rpeMin}-${rpeMax}.`;
+}
+suggestion.innerText = `Next Set Recommendation: ${adjustment}`;
+    }
+
+    function deleteSet(button) {
+      button.closest('.log-row').remove();
+    }
+  function selectRPE(val, el) {
+  document.getElementById('rpe').value = val;
+  document.querySelectorAll('.rpe-btn').forEach(btn => btn.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectPain(val, el) {
+  document.getElementById('pain').value = val;
+  document.querySelectorAll('.pain-btn').forEach(btn => btn.classList.remove('selected'));
+  el.classList.add('selected');
+}
+  
+  function endWorkout() {
+  const logRows = document.querySelectorAll('.log-row');
+  if (logRows.length === 0) return;
+
+  let totalSets = logRows.length;
+  let totalReps = 0;
+  let totalWeight = 0;
+  let totalRPE = 0;
+  let totalPain = 0;
+
+  logRows.forEach(row => {
+    const text = row.textContent;
+    const reps = parseInt(text.match(/REPS:\s*(\d+)/)?.[1] || 0);
+    const weight = parseFloat(text.match(/LB:\s*(\d+)/)?.[1] || 0);
+    const rpe = parseInt(text.match(/RPE:\s*(\d+)/)?.[1] || 0);
+    const pain = parseInt(text.match(/Pain:\s*(\d+)/)?.[1] || 0);
+
+    totalReps += reps;
+    totalWeight += reps * weight;
+    totalRPE += rpe;
+    totalPain += pain;
+  });
+
+  const avgRPE = (totalRPE / totalSets).toFixed(1);
+  const avgPain = (totalPain / totalSets).toFixed(1);
+
+  const summaryHTML = `
+    <h1>Workout Summary</h1>
+    <p><strong>Total Sets:</strong> ${totalSets}</p>
+    <p><strong>Total Reps:</strong> ${totalReps}</p>
+    <p><strong>Total Volume:</strong> ${totalWeight} lbs</p>
+    <p><strong>Avg RPE:</strong> ${avgRPE}</p>
+    <p><strong>Avg Pain:</strong> ${avgPain}/10</p>
+    $1
+<h2 style="margin-top:1rem">Suggested 2-Week Progression</h2>
+<ul>
+  <li><strong>Week 1:</strong> Maintain current sets and reps (target reps: ${repRange}). If Avg RPE < ${rpeMax} and Pain ≤ ${maxPain}, perform sets of ${repRange.split('-')[1]} reps at +5 lbs from average load.</li>
+  <li><strong>Week 2:</strong> Increase to ${parseInt(repRange.split('-')[1]) + 1}–${parseInt(repRange.split('-')[1]) + 2} reps per set or +5–10 lbs, but stay within RPE ${rpeMin}–${rpeMax}, rep range ${repRange}, and keep pain ≤ ${maxPain}.</li>
+</ul>
+  `;
+
+  const summaryBox = document.getElementById('workout-summary');
+  summaryBox.innerHTML = summaryHTML;
+  summaryBox.style.display = 'block';
+}
+
 </script>
 </body>
 </html>
